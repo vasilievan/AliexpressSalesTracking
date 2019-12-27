@@ -132,13 +132,13 @@ class ChangesChecker: Service() {
                 }
                 for (element in 0 until links.size) {
                     if (netIsAvailable()) {
-                        var price: Double
+                        var price: Double?
                         if (links[element].startsWith("https://m.")) {
-                            price = connection(links[element].replaceFirst("m.", ""))[1].toDouble()
+                            price = connection(links[element].replaceFirst("m.", ""))[1].toDoubleOrNull()
                         } else {
-                            price = connection(links[element])[1].toDouble()
+                            price = connection(links[element])[1].toDoubleOrNull()
                         }
-                        if (price != prices[element]) {
+                        if ((price != null) && (price != prices[element])) {
                             val cv = ContentValues()
                             cv.put(db.KEY_LINK, links[element])
                             cv.put(db.KEY_GOOD_NAME, names[element])
