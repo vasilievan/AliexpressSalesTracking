@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
         val inputLinkText = inputLink.getText().toString()
         if (inputLinkText.isEmpty()) {
             Toast.makeText(this, "Please, print the text.", Toast.LENGTH_SHORT).show()
-        } else if (!inputLinkText.matches(Regex("""https:\/\/(m\.)?aliexpress\..+\/.+"""))) {
+        } else if (!inputLinkText.matches(Regex("""https:\/\/.*aliexpress\..+\/.+"""))) {
             inputLink.setText("")
             Toast.makeText(this, "Incorrect input.", Toast.LENGTH_SHORT).show()
         } else {
