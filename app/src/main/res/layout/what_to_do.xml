@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="This app was created to track prices' changes for Aliexpress goods.\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="To add a good that price you want to track, input the link into EditText and click huge orange button +.\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="It magically appears at the main screen.\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="If you wish to delete it, just tap it for a few seconds.\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="If you wish to follow the link, just click on a good.\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="If a price changes (either rises or falls), you'll be notified.\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="Mind the fact the app works in a backgound and uses Internet (either Wi-Fi or mobile).\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="The app was created and developed by Aleksey Vasiliev. Contact me:\n"
+            android:layout_height="wrap_content">
+        </TextView>
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:autoLink="email"
+            android:text="st.cardinalis@gmail.com"
+            android:layout_height="wrap_content">
+        </TextView>
+    </LinearLayout>
+</ScrollView>
