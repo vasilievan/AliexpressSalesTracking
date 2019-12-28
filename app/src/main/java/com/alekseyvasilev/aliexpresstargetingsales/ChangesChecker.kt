@@ -19,7 +19,6 @@ import org.jsoup.select.Elements
 import java.io.IOException
 
 class ChangesChecker: Service() {
-    private val db = DataBase(this)
     val LOG_TAG = "myLog"
     override fun onBind(intent: Intent?): IBinder? {
         Log.d(LOG_TAG, "onBind");
@@ -52,6 +51,7 @@ class ChangesChecker: Service() {
             .setSmallIcon(R.drawable.ic_mipmap_mini)
             .setContentTitle(title)
             .setContentText(str)
+            .setStyle(NotificationCompat.BigTextStyle())
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         if (link != "nothing") {
@@ -107,9 +107,9 @@ class ChangesChecker: Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        //notifyDearUser("Casual notification", "For your service.", "nothing")
         Thread{
             while (true) {
+                val db = DataBase(this)
                 val cursor = db.writableDatabase.query(
                     db.TABLE_NAME,
                     null,
@@ -142,10 +142,16 @@ class ChangesChecker: Service() {
                             val cv = ContentValues()
                             cv.put(db.KEY_LINK, links[element])
                             cv.put(db.KEY_GOOD_NAME, names[element])
-                            cv.put(db.KEY_PRICE, prices[element])
-                            val temp = db.KEY_LINK + " = " + links[element]
+                            cv.put(db.KEY_PRICE, price)
+                            val temp = db.KEY_LINK + " = " + "\"${links[element]}\""
                             db.writableDatabase.update(db.TABLE_NAME, cv, temp, null)
-                            notifyDearUser("Revision", names[element] + " now costs " + (price.toDouble() / prices[element] * 100 - 100) + "%", links[element])
+                            val signedValue = if (price.toDouble() / prices[element] * 100 - 100 > 0) {
+                                "+" + (price.toDouble() / prices[element] * 100 - 100).toInt().toString()
+                            } else {
+                                "-" + (100 - price.toDouble() / prices[element] * 100).toInt().toString()
+                            }
+                            db.close()
+                            notifyDearUser("Revision", names[element] + " now costs " + signedValue + "%. Click here to follow the link.", links[element])
                         }
                     }
                 }

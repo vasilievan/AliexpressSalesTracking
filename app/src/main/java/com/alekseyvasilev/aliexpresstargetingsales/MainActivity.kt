@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 layout.addView(textToAdd)
             } while (cursor.moveToNext())
+            db.close()
         } else {
             Toast.makeText(this, "No goods found.", Toast.LENGTH_SHORT).show()
         }
