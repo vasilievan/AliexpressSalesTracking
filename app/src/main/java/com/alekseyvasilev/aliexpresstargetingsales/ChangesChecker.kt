@@ -17,6 +17,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.io.IOException
+import java.util.*
 
 class ChangesChecker: Service() {
     val LOG_TAG = "myLog"
@@ -96,20 +97,15 @@ class ChangesChecker: Service() {
         return listOf()
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(LOG_TAG, "onCreate")
-    }
-
     override fun onDestroy() {
-        super.onDestroy()
-        Log.d(LOG_TAG, "onDestroy")
+        val intent = Intent(this, ChangesChecker::class.java)
+        startService(intent)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Thread{
-            while (true) {
-                val db = DataBase(this)
+        class MyTask: TimerTask() {
+            override fun run() {
+                val db = DataBase(applicationContext)
                 val cursor = db.writableDatabase.query(
                     db.TABLE_NAME,
                     null,
@@ -132,12 +128,7 @@ class ChangesChecker: Service() {
                 }
                 for (element in 0 until links.size) {
                     if (netIsAvailable()) {
-                        var price: Double?
-                        if (links[element].startsWith("https://m.")) {
-                            price = connection(links[element].replaceFirst("m.", ""))[1].toDoubleOrNull()
-                        } else {
-                            price = connection(links[element])[1].toDoubleOrNull()
-                        }
+                        val price = connection("https://" + Regex("""aliexpress.+""").find(links[element])!!.value)[1].toDoubleOrNull()
                         if ((price != null) && (price != prices[element])) {
                             val cv = ContentValues()
                             cv.put(db.KEY_LINK, links[element])
@@ -146,18 +137,23 @@ class ChangesChecker: Service() {
                             val temp = db.KEY_LINK + " = " + "\"${links[element]}\""
                             db.writableDatabase.update(db.TABLE_NAME, cv, temp, null)
                             val signedValue = if (price.toDouble() / prices[element] * 100 - 100 > 0) {
-                                "+" + (price.toDouble() / prices[element] * 100 - 100).toInt().toString()
+                                "+" + (Math.round((price.toDouble() / prices[element] * 100 - 100) * 100)/ 100).toString()
                             } else {
-                                "-" + (100 - price.toDouble() / prices[element] * 100).toInt().toString()
+                                "-" + (Math.round((100.0 - price.toDouble() / prices[element] * 100.0) * 100)/ 100).toString()
                             }
-                            db.close()
-                            notifyDearUser("Revision", names[element] + " now costs " + signedValue + "%. Click here to follow the link.", links[element])
+                            notifyDearUser(
+                                "Revision",
+                                names[element] + " now costs " + signedValue + "%. Click here to follow the link.",
+                                links[element]
+                            )
                         }
                     }
                 }
-            Thread.sleep(1000 * 60 * 5)
+                db.close()
             }
-        }.start()
+        }
+        val timer = Timer()
+        timer.schedule(MyTask(), 0,1000 * 2 * 60)
         return super.onStartCommand(intent, flags, startId)
     }
 }

@@ -66,10 +66,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-    }
-
     fun netIsAvailable(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         if ((cm.activeNetworkInfo != null) && cm.activeNetworkInfo.isConnected) {
@@ -143,13 +139,11 @@ class MainActivity : AppCompatActivity() {
             }
             var temp = listOf("", "")
             class MyTask: AsyncTask<Any?, Any?, Any?>() {
+
                 override fun doInBackground(vararg params: Any?) {
-                    if (inputLinkText.startsWith("https://m.")) {
-                        temp = connection(inputLinkText.replaceFirst("m.", ""))
-                    } else {
-                        temp = connection(inputLinkText)
-                    }
+                    temp = connection("https://" + Regex("""aliexpress.+""").find(inputLinkText)!!.value)
                 }
+
                 override fun onPostExecute(result: Any?) {
                     super.onPostExecute(result)
 

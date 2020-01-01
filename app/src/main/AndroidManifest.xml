@@ -18,12 +18,12 @@
             </intent-filter>
         </receiver>
         <service android:name=".ChangesChecker"></service>
-        <activity android:name=".MainActivity" android:screenOrientation="reversePortrait">
+        <activity android:name=".MainActivity" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".WhatToDo" android:screenOrientation="reversePortrait"></activity>
+        <activity android:name=".WhatToDo" android:screenOrientation="portrait"></activity>
     </application>
 </manifest>
