@@ -1,8 +1,12 @@
 package com.alekseyvasilev.aliexpresstargetingsales
 
+import android.Manifest
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -13,21 +17,48 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.io.IOException
-
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val db = DataBase(this)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val intent = Intent(applicationContext, ChangesChecker::class.java)
-        applicationContext.startService(intent)
+        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) ||
+            (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_BOOT_COMPLETED) != PackageManager.PERMISSION_GRANTED) ||
+            (ContextCompat.checkSelfPermission(this, Manifest.permission.SET_ALARM) != PackageManager.PERMISSION_GRANTED) ||
+            (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED)){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.SET_ALARM, Manifest.permission.ACCESS_NETWORK_STATE), 314158)
+        }
+        val alarmUp = PendingIntent.getBroadcast(
+            applicationContext, 0,
+            Intent(applicationContext, AutoStart::class.java),
+            PendingIntent.FLAG_NO_CREATE
+        ) != null
+        if (!alarmUp) {
+            val alarmMgr: AlarmManager?
+            lateinit var alarmIntent: PendingIntent
+            alarmMgr = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmIntent = Intent(applicationContext, AutoStart::class.java).let { intent ->
+                PendingIntent.getBroadcast(applicationContext, 0, intent, 0)
+            }
+            val calendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, this.get(Calendar.HOUR_OF_DAY))
+                set(Calendar.MINUTE, this.get(Calendar.MINUTE))
+            }
+            alarmMgr.setRepeating(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                1000 * 60 * 5,
+                alarmIntent
+            )
+        }
 
         val cursor = db.writableDatabase.query(db.TABLE_NAME, null, null, null, null, null, null, null)
         val layout = findViewById<LinearLayout>(R.id.layout)
@@ -128,22 +159,20 @@ class MainActivity : AppCompatActivity() {
         val inputLinkText = inputLink.getText().toString()
         if (inputLinkText.isEmpty()) {
             Toast.makeText(this, "Please, print the text.", Toast.LENGTH_SHORT).show()
-        } else if (!inputLinkText.matches(Regex("""https:\/\/.*aliexpress\..+\/.+"""))) {
+        } else if (!inputLinkText.matches(Regex("""https://.*aliexpress\..+/.+"""))) {
             inputLink.setText("")
             Toast.makeText(this, "Incorrect input.", Toast.LENGTH_SHORT).show()
         } else {
             if (alreadyInDataBase(inputLinkText)) {
                 Toast.makeText(this, "Error. Already presented in the database.", Toast.LENGTH_LONG).show()
                 inputLink.setText("")
-                return Unit
+                return
             }
             var temp = listOf("", "")
             class MyTask: AsyncTask<Any?, Any?, Any?>() {
-
                 override fun doInBackground(vararg params: Any?) {
                     temp = connection("https://" + Regex("""aliexpress.+""").find(inputLinkText)!!.value)
                 }
-
                 override fun onPostExecute(result: Any?) {
                     super.onPostExecute(result)
 

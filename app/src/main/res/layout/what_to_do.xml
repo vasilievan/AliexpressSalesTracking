@@ -6,6 +6,15 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <TextView
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:fontFamily="sans-serif"
+            android:layout_width="match_parent"
+            android:text="Please, make sure you granted an autostart permission or this app just\n WON'T WORK.\n"
+            android:layout_height="wrap_content">
+        </TextView>
         <TextView
             android:textAlignment="center"
             android:textSize="20sp"

@@ -9,21 +9,19 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.IBinder
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.io.IOException
-import java.util.*
+import kotlin.math.abs
 
 class ChangesChecker: Service() {
-    val LOG_TAG = "myLog"
     override fun onBind(intent: Intent?): IBinder? {
-        Log.d(LOG_TAG, "onBind");
-        return null;
+        return null
     }
 
     fun netIsAvailable(): Boolean {
@@ -103,43 +101,43 @@ class ChangesChecker: Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        class MyTask: TimerTask() {
+        val db = DataBase(applicationContext)
+        val cursor = db.writableDatabase.query(
+            db.TABLE_NAME,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        val prices = mutableListOf<Double>()
+        val names = mutableListOf<String>()
+        val links = mutableListOf<String>()
+        if (cursor.moveToFirst()) {
+            do {
+                prices.add(cursor.getDouble(cursor.getColumnIndex(db.KEY_PRICE)))
+                names.add(cursor.getString(cursor.getColumnIndex(db.KEY_GOOD_NAME)))
+                links.add(cursor.getString(cursor.getColumnIndex(db.KEY_LINK)))
+            } while (cursor.moveToNext())
+        }
+        var background = object : Thread(){
             override fun run() {
-                val db = DataBase(applicationContext)
-                val cursor = db.writableDatabase.query(
-                    db.TABLE_NAME,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                )
-                val prices = mutableListOf<Double>()
-                val names = mutableListOf<String>()
-                val links = mutableListOf<String>()
-                if (cursor.moveToFirst()) {
-                    do {
-                        prices.add(cursor.getDouble(cursor.getColumnIndex(db.KEY_PRICE)))
-                        names.add(cursor.getString(cursor.getColumnIndex(db.KEY_GOOD_NAME)))
-                        links.add(cursor.getString(cursor.getColumnIndex(db.KEY_LINK)))
-                    } while (cursor.moveToNext())
-                }
                 for (element in 0 until links.size) {
                     if (netIsAvailable()) {
                         val price = connection("https://" + Regex("""aliexpress.+""").find(links[element])!!.value)[1].toDoubleOrNull()
-                        if ((price != null) && (price != prices[element])) {
+                        if ((price != null) && ((abs(price/prices[element]) > 1.04) || (abs(price/prices[element]) < 0.96))) {
                             val cv = ContentValues()
                             cv.put(db.KEY_LINK, links[element])
                             cv.put(db.KEY_GOOD_NAME, names[element])
                             cv.put(db.KEY_PRICE, price)
                             val temp = db.KEY_LINK + " = " + "\"${links[element]}\""
                             db.writableDatabase.update(db.TABLE_NAME, cv, temp, null)
-                            val signedValue = if (price.toDouble() / prices[element] * 100 - 100 > 0) {
-                                "+" + (Math.round((price.toDouble() / prices[element] * 100 - 100) * 100)/ 100).toString()
+                            val signedValue = if (price.toDouble() / prices[element] * 100 - 100 > 4) {
+                                "+" + Math.abs(price.toDouble() / prices[element] * 100 - 100).toString()
                             } else {
-                                "-" + (Math.round((100.0 - price.toDouble() / prices[element] * 100.0) * 100)/ 100).toString()
+                                "-" + Math.abs(price.toDouble() / prices[element] * 100 - 100).toString()
                             }
                             notifyDearUser(
                                 "Revision",
@@ -151,9 +149,7 @@ class ChangesChecker: Service() {
                 }
                 db.close()
             }
-        }
-        val timer = Timer()
-        timer.schedule(MyTask(), 0,1000 * 2 * 60)
+        }.start()
         return super.onStartCommand(intent, flags, startId)
     }
 }
